@@ -1,5 +1,6 @@
 #enable cluster lock on each nodes
 lvmconf --enable-cluster
+lvmconfig |grep type
 reboot
 
 #confirm disk id on share storage volume
@@ -31,7 +32,7 @@ pcs resource cleanup
 pvcreate /dev/sdb
 vgcreate -cy vg1 /dev/sdb
 lvcreate -l 100%free -n lv1 vg1
-mkfs.gfs2 -j2 -p lock_dlm -t cluster1:gfs1 /dev/vg1/lv1
+mkfs.gfs2 -j 2 -p lock_dlm -t cluster1:gfs1 /dev/vg1/lv1
 
 #create clusterfs resource on one node
 pcs resource create clusterfs Filesystem device="/dev/vg1/lv1" directory="/mnt" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=fence clone interleave=true
