@@ -1,0 +1,29 @@
+#install lvm2-cluster gfs2 on each nodes
+yum install lvm2-cluster gfs2-utils
+pcs property set no-quorum-policy=freeze
+
+#add dlm resource on one node
+pcs resource create dlm ocf:pacemaker:controld op monitor interval=30s on-fail=fence clone interleave=true ordered=true
+
+#enable cluster lock on each nodes
+lvmconf --enable-cluster
+
+#add clvmd resource on one node
+pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=fence clone interleave=true ordered=true
+
+#create dlm clvm dependence and starup order on one node
+pcs constraint order start dlm-clone then clvmd-clone
+pcs constraint colocation add clvmd-clone with dlm-clone
+
+#create gfs2 on iscsi storage volume
+pvcreate /dev/sdb
+vgcreate -cy vg1 /dev/sdb
+lvcreate -l 100%free -n lv1 vg1
+mkfs.gfs2 -j2 -p lock_dlm -t cluster1:gfs1 /dev/vg1/lv1
+
+#create clusterfs resource on one node
+pcs resource create clusterfs Filesystem device="/dev/vg1/lv1" directory="/mnt" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=fence clone interleave=true
+
+#create gfs2 clvmd startup order and dependence
+pcs constraint order start clvmd-clone then clusterfs-clone
+pcs constraint colocation add clusterfs-clone with clvmd-clone
