@@ -15,6 +15,8 @@ pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=fen
 pcs constraint order start dlm-clone then clvmd-clone
 pcs constraint colocation add clvmd-clone with dlm-clone
 
+pcs constraint show
+
 #create gfs2 on iscsi storage volume
 pvcreate /dev/sdb
 vgcreate -cy vg1 /dev/sdb
