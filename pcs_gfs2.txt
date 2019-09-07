@@ -1,12 +1,18 @@
-#install lvm2-cluster gfs2 on each nodes
-yum install lvm2-cluster gfs2-utils
+#enable cluster lock on each nodes
+lvmconf --enable-cluster
+reboot
+
+#confirm disk id on share storage volume
+ll /dev/disk/by-id | grep sda
+pcs stonith create scsi-shooter fence_scsi pcmk_host_list="pcs1 pcs2" devices=/dev/disk/by-id/wwn-0x6001405189b893893594dffb3a2cb3e9 meta provides=unfencing
+
+pcs stonith show scsi-shooter
+pcs stonith delete scsi-shooter
 pcs property set no-quorum-policy=freeze
 
 #add dlm resource on one node
 pcs resource create dlm ocf:pacemaker:controld op monitor interval=30s on-fail=fence clone interleave=true ordered=true
 
-#enable cluster lock on each nodes
-lvmconf --enable-cluster
 
 #add clvmd resource on one node
 pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=fence clone interleave=true ordered=true
@@ -16,6 +22,10 @@ pcs constraint order start dlm-clone then clvmd-clone
 pcs constraint colocation add clvmd-clone with dlm-clone
 
 pcs constraint show
+pcs resource enable dlm
+pcs resource disable dlm
+pcs resource delete dlm
+pcs resource cleanup
 
 #create gfs2 on iscsi storage volume
 pvcreate /dev/sdb

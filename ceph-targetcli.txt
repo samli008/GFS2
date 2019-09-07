@@ -50,9 +50,7 @@ o- / ........................................................................ [.
   o- xen_pvscsi ...................................................... [Targets: 0]
 /> 
 
-#on pcs hosts
-yum -y install fence-agents-all lvm2-cluster gfs2-utils
-
+#on hosts
 yum -y install iscsi-initiator-utils
 cat /etc/iscsi/initiatorname.iscsi 
 InitiatorName=iqn.1994-05.com.redhat:c71
@@ -64,4 +62,44 @@ systemctl enable multipathd
 systemctl start multipathd
 lsmod |grep dm
 
+iscsiadm -m iface -I eth0 -o new
+iscsiadm -m iface -I eth1 -o new
 
+iscsiadm -m discovery -t st -p IP
+iscsiadm -m node -l
+iscsiadm -m node -u
+iscsiadm -m session
+
+[root@c7-1 ~]# cd /var/lib/iscsi/
+[root@c7-1 iscsi]# ls
+ifaces  isns  nodes  send_targets  slp  static
+
+fdisk -l |grep sd
+
+multipath -ll
+
+vi /etc/multipath.conf
+multipaths {
+        multipath {
+                wwid                    364ed2aa51864120b621ab51c2b9bf4b1
+                alias                   rbd1
+                path_grouping_policy    multibus
+                failback                immediate
+                rr_weight               priorities
+                no_path_retry           5
+        }
+#       multipath {
+#               wwid                    1DEC_____321816758474
+#               alias                   red
+#       }
+}
+
+systemctl reload multipathd
+multipath -ll
+
+mkfs.xfs /dev/mapper/rbd1
+
+tail -l /etc/fstab
+/dev/mapper/rbd1  /rbd1  xfs  _netdev,defaults 0 0
+
+mount -a
