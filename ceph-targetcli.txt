@@ -17,7 +17,10 @@ rbd create disk1 -s 200G --image-feature layering
 rbd ls
 rbd info disk1
 
+systemctl enable target
+systemctl start target
 targetcli
+
 /backstores/user:rbd> create cfgstring=rbd/disk1 name=disk01 size=1T
 /iscsi> create iqn.2019-09.com.storage:ceph
 
