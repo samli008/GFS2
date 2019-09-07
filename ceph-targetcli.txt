@@ -1,0 +1,64 @@
+cat >> /etc/yum.repos.d/iscsi.repo << EOF
+[mimic]
+name=mimic
+baseurl=file:///root/mimic
+enabled=1
+gpgcheck=0
+[iscsi]
+name=iscsi
+baseurl=file:///root/iscsi
+enabled=1
+gpgcheck=0
+EOF
+
+yum -y install ceph tcmu-runner targetcli-fb
+
+rbd create disk1 -s 200G --image-feature layering
+rbd ls
+rbd info disk1
+
+targetcli
+/backstores/user:rbd> create cfgstring=rbd/disk1 name=disk01 size=1T
+/iscsi> create iqn.2019-09.com.storage:ceph
+
+/> ls
+o- / ........................................................................ [...]
+  o- backstores ............................................................. [...]
+  | o- block ................................................. [Storage Objects: 0]
+  | o- fileio ................................................ [Storage Objects: 0]
+  | o- pscsi ................................................. [Storage Objects: 0]
+  | o- ramdisk ............................................... [Storage Objects: 0]
+  | o- user:rbd .............................................. [Storage Objects: 1]
+  |   o- disk01 .................................. [rbd/disk1 (200.0GiB) activated]
+  |     o- alua .................................................. [ALUA Groups: 0]
+  o- iscsi ........................................................... [Targets: 1]
+  | o- iqn.2019-09.com.storage:ceph ..................................... [TPGs: 1]
+  |   o- tpg1 .............................................. [no-gen-acls, no-auth]
+  |     o- acls ......................................................... [ACLs: 2]
+  |     | o- iqn.1994-05.com.redhat:pcs1 ......................... [Mapped LUNs: 1]
+  |     | | o- mapped_lun0 ................................ [lun0 user/disk01 (rw)]
+  |     | o- iqn.1994-05.com.redhat:pcs2 ......................... [Mapped LUNs: 1]
+  |     |   o- mapped_lun0 ................................ [lun0 user/disk01 (rw)]
+  |     o- luns ......................................................... [LUNs: 1]
+  |     | o- lun0 ............................................ [user/disk01 (None)]
+  |     o- portals ................................................... [Portals: 1]
+  |       o- 192.168.100.200:3260 ............................................ [OK]
+  o- loopback ........................................................ [Targets: 0]
+  o- xen_pvscsi ...................................................... [Targets: 0]
+/> 
+
+#on pcs hosts
+yum -y install fence-agents-all lvm2-cluster gfs2-utils
+
+yum -y install iscsi-initiator-utils
+cat /etc/iscsi/initiatorname.iscsi 
+InitiatorName=iqn.1994-05.com.redhat:c71
+systemctl restart iscsi
+
+yum -y install device-mapper-multipath
+cp /usr/share/doc/device-mapper-multipath-0.4.9/multipath.conf /etc/
+systemctl enable multipathd
+systemctl start multipathd
+lsmod |grep dm
+
+
