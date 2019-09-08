@@ -7,23 +7,24 @@ EOF
 ssh-keygen
 ssh-copy-id
 
-yum -y install pcs fence-agents-all lvm2-cluster gfs2-utils
+#on each nodes
 
+yum -y install pcs fence-agents-all lvm2-cluster gfs2-utils
 systemctl enable pcsd
 systemctl start pcsd
+echo "liyang" | passwd --stdin hacluster
 
-echo "liyang" | passwd --stdin hacluster #on each nodes
-
-pcs cluster auth pcs1 pcs2
+#on a node
+pcs cluster auth pcs1 pcs2 -u hacluster -p liyang
 pcs cluster setup --name liyang pcs1 pcs2
 pcs cluster start --all
 pcs cluster enable --all
+pcs property set stonith-enabled=true
 
 pcs status cluster
 pcs status corosync
 
 # stonith change to "ignore", it does not need for 2 nodes cluster
-pcs property set stonith-enabled=true
 pcs property set no-quorum-policy=ignore
 
 # disable auto failbask
