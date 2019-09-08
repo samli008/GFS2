@@ -12,7 +12,7 @@ yum -y install pcs fence-agents-all lvm2-cluster gfs2-utils
 systemctl enable pcsd
 systemctl start pcsd
 
-passwd hacluster #on each nodes
+echo "liyang" | passwd --stdin hacluster #on each nodes
 
 pcs cluster auth pcs1 pcs2
 pcs cluster setup --name liyang pcs1 pcs2
