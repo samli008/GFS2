@@ -43,3 +43,4 @@ pcs resource create vip ocf:heartbeat:IPaddr2 ip=192.168.80.200 cidr_netmask=24 
 
 # show status
 pcs status resources
+pcs config show
