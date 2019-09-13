@@ -1,0 +1,27 @@
+#on each pcs nodes
+yum -y install moosefs-master moosefs-chunkserver moosefs-client
+vi /usr/lib/systemd/system/moosefs-master.service
+ExecStart=/usr/sbin/mfsmaster -a start
+systemctl daemon-reload
+
+iscsiadm -m discovery -t st -p 192.168.100.200
+iscsiadm -m node -l
+
+#on a pcs node
+mkfs.xfs /dev/sdb
+mount /dev/sdb /mnt
+cp -p /var/lib/mfs/* /mnt
+chown mfs:mfs /mnt
+umount /mnt
+
+#on a pcs node
+pcs property set stonith-enabled=false
+pcs resource create vip ocf:heartbeat:IPaddr2 ip=192.168.80.200 cidr_netmask=24 op monitor interval=30s
+pcs resource create mfsd systemd:moosefs-master op monitor interval=1min
+pcs resource create mfsdata ocf:heartbeat:Filesystem device=/dev/sdb directory=/var/lib/mfs fstype=xfs op monitor interval=30s
+pcs resource group add mfsgroup vip mfsdata mfsd
+
+#pcs cluster resource failover testing
+pcs resource
+pcs cluster stop pcs2
+pcs cluster start pcs2
