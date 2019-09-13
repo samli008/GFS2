@@ -22,6 +22,9 @@ pcs resource create mfsd systemd:moosefs-master op monitor interval=1min
 pcs resource create mfsdata ocf:heartbeat:Filesystem device=/dev/sdb directory=/var/lib/mfs fstype=xfs op monitor interval=30s
 pcs resource group add mfsgroup vip mfsdata mfsd
 
+pcs resource create smbd systemd:smb op monitor interval=1min
+pcs resource create nfsd systemd:nfs-server op monitor interval=1min
+
 #pcs cluster resource failover testing
 pcs resource
 pcs cluster stop pcs2
