@@ -16,6 +16,7 @@ umount /mnt
 
 #on a pcs node
 pcs property set stonith-enabled=false
+pcs property set default-resource-stickiness="INFINITY"
 pcs resource create vip ocf:heartbeat:IPaddr2 ip=192.168.80.200 cidr_netmask=24 op monitor interval=30s
 pcs resource create mfsd systemd:moosefs-master op monitor interval=1min
 pcs resource create mfsdata ocf:heartbeat:Filesystem device=/dev/sdb directory=/var/lib/mfs fstype=xfs op monitor interval=30s
@@ -25,3 +26,4 @@ pcs resource group add mfsgroup vip mfsdata mfsd
 pcs resource
 pcs cluster stop pcs2
 pcs cluster start pcs2
+pcs resource update vip ip=192.168.100.100
