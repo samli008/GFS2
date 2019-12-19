@@ -25,9 +25,7 @@ pcs cluster setup --name $name $pcs1 $pcs2
 pcs cluster start --all
 pcs cluster enable --all
 pcs property set stonith-enabled=true
-
 pcs status cluster
-
 ;;
 
 3)
