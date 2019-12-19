@@ -29,6 +29,7 @@ pcs status cluster
 ;;
 
 3)
+echo "pls use ll /dev/disk/by-id confirm stonith disk device"
 read -p "pls intput node1 hostname: " pcs1
 read -p "pls intput node2 hostname: " pcs2
 read -p "pls input stonith disk [sdb]: " sd
