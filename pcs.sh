@@ -10,6 +10,10 @@ yum -y install pcs fence-agents-all lvm2-cluster gfs2-utils
 systemctl enable pcsd
 systemctl start pcsd
 echo "liyang" | passwd --stdin hacluster
+lvmconf --enable-cluster
+lvmconf -h
+lvmconfig |grep type
+echo "pls reboot host for clvm."
 ;;
 
 2)
@@ -24,10 +28,6 @@ pcs property set stonith-enabled=true
 
 pcs status cluster
 
-lvmconf --enable-cluster
-lvmconf -h
-lvmconfig |grep type
-echo "pls reboot host for clvm."
 ;;
 
 3)
