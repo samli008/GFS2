@@ -49,3 +49,13 @@ pcs config show
 # delete cluster node
 pcs cluster standby node2
 pcs cluster node remove node2
+
+# add cluter node
+pcs cluster auth node2 -u hacluster -p liyang
+pcs cluster node add node2
+pcs cluster start node2
+pcs cluster enable node2
+
+# delete cluster
+pcs cluster stop
+pcs cluster destroy
