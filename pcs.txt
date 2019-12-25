@@ -45,3 +45,7 @@ pcs resource move vip pcs2
 # show status
 pcs status resources
 pcs config show
+
+# delete cluster node
+pcs cluster standby node2
+pcs cluster node remove node2
